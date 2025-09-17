@@ -1,0 +1,50 @@
+# @package _global_
+
+defaults:
+  - override /task: cartpole
+
+# Override the task configuration with the camera-augmented variant.
+task:
+  name: CartpoleCamera
+  physics_engine: "physx"
+  env:
+    num_envs: 1024
+  rewards:
+    enable: true
+  observations:
+    use_camera: true
+  cfg: omni.isaac.lab_tasks.cartpole.cartpole_camera_cfg.CartpoleCameraTaskCfg
+
+train:
+  params:
+    network:
+      input_name: ["pole_camera_rgb", "policy"]
+      separate: true
+      encoder:
+        policy:
+          type: mlp
+          units: [256, 128]
+        pole_camera_rgb:
+          type: cnn
+          activation: relu
+          num_layers: 3
+          channels: [32, 64, 64]
+          kernels: [8, 4, 3]
+          strides: [4, 2, 1]
+          flatten: true
+      critic_encoder:
+        type: shared
+    algo:
+      name: PPO
+      ppo:
+        value_loss_coef: 2.0
+        clip_param: 0.2
+        entropy_coef: 0.0
+        learning_rate: 5e-4
+        gamma: 0.99
+        lam: 0.95
+        mini_batch_size: 4096
+        num_learning_epochs: 4
+        grad_norm: 1.0
+        horizon_length: 32
+        max_agent_steps: 100000000
